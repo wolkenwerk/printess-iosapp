@@ -23,7 +23,7 @@ struct TemplateResponse: Codable {
 struct Template: Codable {
   var id: Int
   var name: String
-  var thumbnailURL: String
+  var thumbnailURL: String?
   var backgroundColor: String
   var w: Bool
   var p: Bool
