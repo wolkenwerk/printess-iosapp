@@ -9,81 +9,120 @@
 import UIKit
 import WebKit
 
-class EditorViewController: UIViewController, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler {
+class EditorViewController: UIViewController, WKUIDelegate, WKScriptMessageHandler {
+    var templateName: String = ""
+    var templateToken: String?
+    var bearerToken: String = ""
 
-  var templateName: String = ""
-  var templateToken: String?
-  var bearerToken: String = ""
+    var exitCallback: ((_ token: String) -> ())?
+    var addToBasketCallback: ((_ token: String, _ thumbnail: String) -> ())?
 
-  var exitCallback: ((_ token: String) -> ())?
-  var addToBasketCallback: ((_ token: String, _ thumbnail: String) -> ())?
+    @IBOutlet
+    var webView: WKWebView?
 
-  @IBOutlet
-  var webView: WKWebView?
+    override func viewDidLoad() {
+        super.viewDidLoad()
 
-  override func viewDidLoad() {
-    super.viewDidLoad()
+        guard let webView = webView else { return }
 
-    guard let webView = webView else { return }
+        let productionUrlString = "https://localhost:8443/panel-ui-ios.html"
 
-    let myURL = URL(string: "https://printess-editor.s3.eu-central-1.amazonaws.com/v/nightly/printess-editor/buyer-test-ios.html")
-    let myRequest = URLRequest(url: myURL!)
+        if let url = URL(string: productionUrlString) {
+            let request = URLRequest(url: url)
+            webView.load(request)
+        }
 
-    let contentController = webView.configuration.userContentController
-    contentController.add(self, name: "backButtonCallback")
-    contentController.add(self, name: "addToBasketCallback")
+        // Set up message handlers for Swift callbacks (JavaScript -> Swift communication)
+        let contentController = webView.configuration.userContentController
+        contentController.add(self, name: "backButtonCallback")
+        contentController.add(self, name: "addToBasketCallback")
 
-    webView.navigationDelegate = self
-    webView.uiDelegate = self
-    webView.load(myRequest)
-  }
-
-  // startPrintess(token, templateName, templateVersion, basketId, shopUserId, backCallback, addToBasketCallback)
-  func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-    var usedTemplateName = templateName.replacingOccurrences(of: "'", with: "\\\'")
-    if let token = templateToken {
-      usedTemplateName = token
+        // Set delegates
+        webView.navigationDelegate = self
+        webView.uiDelegate = self
     }
-    let js = "startPrintess('\(bearerToken)', '\(usedTemplateName)', 'published', 'someBasketId', 'someShopUserId', 'backButtonCallback', 'addToBasketCallback')"
 
-    webView.evaluateJavaScript(js, completionHandler: { (_, error) in
-      if let evaluationError = error {
-        print("Error : \(evaluationError)")
-      }
-    })
-  }
+    // Handles alerts triggered by JavaScript (e.g., alert("message"))
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
+                 initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> ())
+    {
+        let alertController = UIAlertController(title: message, message: nil,
+                                                preferredStyle: UIAlertController.Style.alert)
 
-  func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String,
-               initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        alertController.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.cancel) {
+            _ in completionHandler()
+        }
+        )
+        alertController.addAction(UIAlertAction(title: "Back to list", style: UIAlertAction.Style.default) {
+            _ in completionHandler()
+            self.dismiss(animated: true, completion: nil)
+        }
+        )
 
-    let alertController = UIAlertController(title: message, message: nil,
-                                          preferredStyle: UIAlertController.Style.alert)
-
-    alertController.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.cancel) {
-      _ in completionHandler()}
-    )
-    alertController.addAction(UIAlertAction(title: "Back to list", style: UIAlertAction.Style.default) {
-        _ in completionHandler()
-        self.dismiss(animated: true, completion: nil)
-      }
-    )
-
-    self.present(alertController, animated: true, completion: {})
-  }
-
-  func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-    if message.name == "backButtonCallback" {
-      guard let saveToken = message.body as? String else { return }
-      if let callback = self.exitCallback {
-        callback(saveToken)
-      }
-    } else if message.name == "addToBasketCallback" {
-      guard let dict = message.body as? [String: String] else { return }
-      guard let saveToken = (dict["token"]) else { return }
-      guard let imageUrl = (dict["imageUrl"]) else { return }
-      if let callback = self.addToBasketCallback {
-        callback(saveToken, imageUrl)
-      }
+        present(alertController, animated: true, completion: {})
     }
-  }
+
+    // Receives messages posted from JavaScript via window.webkit.messageHandlers
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        if message.name == "backButtonCallback" {
+            guard let saveToken = message.body as? String else { return }
+            if let callback = exitCallback {
+                callback(saveToken)
+            }
+        } else if message.name == "addToBasketCallback" {
+            guard let dict = message.body as? [String: String] else { return }
+            guard let saveToken = dict["token"] else { return }
+            guard let imageUrl = dict["imageUrl"] else { return }
+            if let callback = addToBasketCallback {
+                callback(saveToken, imageUrl)
+            }
+        }
+    }
+}
+
+// MARK: - WKNavigationDelegate
+
+extension EditorViewController: WKNavigationDelegate {
+    // This removes the security bypass necessary for self-signed localhost certificates.
+    // This only for local testing
+
+//    func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> ()) {
+//        // 1. Check if the challenge is for SSL/TLS server trust
+//        if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust {
+//            // 2. OPTIONAL: Restrict this trust bypass only to your localhost
+//            if challenge.protectionSpace.host == "localhost" {
+//                // CRITICAL BYPASS: Tell the OS to trust the self-signed certificate.
+//                // NOTE: ONLY use this for development on known hosts like 'localhost'.
+//                if let serverTrust = challenge.protectionSpace.serverTrust {
+//                    completionHandler(.useCredential, URLCredential(trust: serverTrust))
+//                    return
+//                }
+//            }
+//        }
+//
+//        // For all other challenges or if the check fails, use the default handling
+//        completionHandler(.performDefaultHandling, nil)
+//    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        var usedTemplateName = templateName.replacingOccurrences(of: "'", with: "\\\'")
+        if let token = templateToken {
+            usedTemplateName = token
+        }
+
+        // This JavaScript starts the Printess Panel-UI
+        let js = """
+        startPrintessPanel({
+          token: "\(bearerToken)",
+          templateName: "\(usedTemplateName)",
+          basketId: "someBasketId"
+        });
+        """
+
+        webView.evaluateJavaScript(js, completionHandler: { _, error in
+            if let evaluationError = error {
+                print("Error evaluating JavaScript to start Printess: \(evaluationError)")
+            }
+        })
+    }
 }
