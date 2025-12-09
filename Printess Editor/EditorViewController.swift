@@ -25,7 +25,7 @@ class EditorViewController: UIViewController, WKUIDelegate, WKScriptMessageHandl
 
         guard let webView = webView else { return }
 
-        let productionUrlString = "https://localhost:8443/panel-ui-ios.html"
+        let productionUrlString = "https://resource.printess.com/customers/panel-ui-ios.html"
 
         if let url = URL(string: productionUrlString) {
             let request = URLRequest(url: url)
