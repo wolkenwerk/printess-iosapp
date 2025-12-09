@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Printess Panel-UI (iOS)</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+    #printess-container {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Printess Panel-UI attaches here -->
+  <div id="printess-container"></div>
+
+  <script type="module">
+    import { load } from "https://editor.printess.com/v/nightly/printess-editor/loader.js";
+
+    window.startPrintessPanel = async (config) => {
+
+      const api = await load({
+        token: config.token,
+        translationKey: "en",
+        templateName: config.templateName,
+        templateVersion: "published",
+        basketId: config.basketId,
+        attachTo: document.getElementById("printess-container"),
+
+        // callback → Swift
+        addToBasketCallback: (token, thumb) => {
+          window.webkit.messageHandlers.addToBasketCallback.postMessage({
+            token: token,
+            imageUrl: thumb
+          });
+        },
+
+        // exit callback → Swift
+        backButtonCallback: (token) => {
+          window.webkit.messageHandlers.backButtonCallback.postMessage(token);
+        }
+      });
+    };
+  </script>
+
+</body>
+</html>
