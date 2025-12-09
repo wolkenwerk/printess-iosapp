@@ -111,6 +111,7 @@ extension EditorViewController: WKNavigationDelegate {
         }
 
         // This JavaScript starts the Printess Panel-UI
+        // TODO: basket id does it need to be set?
         let js = """
         startPrintessPanel({
           token: "\(bearerToken)",
