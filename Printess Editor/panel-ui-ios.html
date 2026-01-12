@@ -51,6 +51,11 @@
         }
       });
     };
+
+    // Notify Swift that the module has loaded and startPrintessPanel is ready
+    if (window.webkit?.messageHandlers?.printessReady) {
+      window.webkit.messageHandlers.printessReady.postMessage("ready");
+    }
   </script>
 
 </body>

@@ -36,6 +36,7 @@ class EditorViewController: UIViewController, WKUIDelegate, WKScriptMessageHandl
         let contentController = webView.configuration.userContentController
         contentController.add(self, name: "backButtonCallback")
         contentController.add(self, name: "addToBasketCallback")
+        contentController.add(self, name: "printessReady") // NEW: Listen for JS ready signal
 
         // Set delegates
         webView.navigationDelegate = self
@@ -64,7 +65,10 @@ class EditorViewController: UIViewController, WKUIDelegate, WKScriptMessageHandl
 
     // Receives messages posted from JavaScript via window.webkit.messageHandlers
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        if message.name == "backButtonCallback" {
+        if message.name == "printessReady" {
+            // JavaScript module has loaded, now safe to call startPrintessPanel
+            startPrintess()
+        } else if message.name == "backButtonCallback" {
             guard let saveToken = message.body as? String else { return }
             if let callback = exitCallback {
                 callback(saveToken)
@@ -75,6 +79,31 @@ class EditorViewController: UIViewController, WKUIDelegate, WKScriptMessageHandl
             guard let imageUrl = dict["imageUrl"] else { return }
             if let callback = addToBasketCallback {
                 callback(saveToken, imageUrl)
+            }
+        }
+    }
+
+    //  Extracted method to start Printess - called when JS signals it's ready
+    private func startPrintess() {
+        guard let webView = webView else { return }
+
+        var usedTemplateName = templateName.replacingOccurrences(of: "'", with: "\\'")
+        if let token = templateToken {
+            usedTemplateName = token
+        }
+
+        // TODO: basket id does it need to be set?
+        let js = """
+        startPrintessPanel({
+          token: "\(bearerToken)",
+          templateName: "\(usedTemplateName)",
+          basketId: "someBasketId"
+        });
+        """
+
+        webView.evaluateJavaScript(js) { _, error in
+            if let error = error {
+                print("Error evaluating JavaScript to start Printess: \(error)")
             }
         }
     }
@@ -105,25 +134,7 @@ extension EditorViewController: WKNavigationDelegate {
 //    }
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-        var usedTemplateName = templateName.replacingOccurrences(of: "'", with: "\\\'")
-        if let token = templateToken {
-            usedTemplateName = token
-        }
-
-        // This JavaScript starts the Printess Panel-UI
-        // TODO: basket id does it need to be set?
-        let js = """
-        startPrintessPanel({
-          token: "\(bearerToken)",
-          templateName: "\(usedTemplateName)",
-          basketId: "someBasketId"
-        });
-        """
-
-        webView.evaluateJavaScript(js, completionHandler: { _, error in
-            if let evaluationError = error {
-                print("Error evaluating JavaScript to start Printess: \(evaluationError)")
-            }
-        })
+        // Page has loaded, but we wait for the "printessReady" message
+        // before calling startPrintessPanel to avoid race condition
     }
 }
