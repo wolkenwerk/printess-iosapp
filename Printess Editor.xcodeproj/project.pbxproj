@@ -19,6 +19,8 @@
 		E1C84B5E27723DB300B3BA82 /* FinishedDesignToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1C84B5D27723DB300B3BA82 /* FinishedDesignToken.swift */; };
 		E1EFC99E275FA43000BBC12D /* TemplateListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1EFC99D275FA43000BBC12D /* TemplateListViewController.swift */; };
 		E1FAA8FB2760DA780068448D /* TemplateTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1FAA8FA2760DA780068448D /* TemplateTableViewCell.swift */; };
+		F2E2AA692F1523A300A4957A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2E2AA682F1523A300A4957A /* WebKit.framework */; };
+		F2E58B162ED85E9D00166363 /* panel-ui-ios.html in Resources */ = {isa = PBXBuildFile; fileRef = F2E58B152ED85E7C00166363 /* panel-ui-ios.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +38,8 @@
 		E1C84B5D27723DB300B3BA82 /* FinishedDesignToken.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishedDesignToken.swift; sourceTree = "<group>"; };
 		E1EFC99D275FA43000BBC12D /* TemplateListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateListViewController.swift; sourceTree = "<group>"; };
 		E1FAA8FA2760DA780068448D /* TemplateTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateTableViewCell.swift; sourceTree = "<group>"; };
+		F2E2AA682F1523A300A4957A /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		F2E58B152ED85E7C00166363 /* panel-ui-ios.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = "panel-ui-ios.html"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F2E2AA692F1523A300A4957A /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,6 +58,7 @@
 			isa = PBXGroup;
 			children = (
 				04245309263C4FA6004E9E6A /* Printess Editor */,
+				F2E2AA672F1523A300A4957A /* Frameworks */,
 				04245308263C4FA6004E9E6A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -68,6 +74,7 @@
 		04245309263C4FA6004E9E6A /* Printess Editor */ = {
 			isa = PBXGroup;
 			children = (
+				F2E58B152ED85E7C00166363 /* panel-ui-ios.html */,
 				0424530A263C4FA6004E9E6A /* AppDelegate.swift */,
 				0424530C263C4FA6004E9E6A /* SceneDelegate.swift */,
 				0424530E263C4FA6004E9E6A /* EditorViewController.swift */,
@@ -83,6 +90,14 @@
 				E1402BE4277CBB7700D31884 /* TemplateDataSource.swift */,
 			);
 			path = "Printess Editor";
+			sourceTree = "<group>";
+		};
+		F2E2AA672F1523A300A4957A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				F2E2AA682F1523A300A4957A /* WebKit.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -146,6 +161,7 @@
 				04245317263C4FA8004E9E6A /* LaunchScreen.storyboard in Resources */,
 				04245314263C4FA8004E9E6A /* Assets.xcassets in Resources */,
 				04245312263C4FA6004E9E6A /* Main.storyboard in Resources */,
+				F2E58B162ED85E9D00166363 /* panel-ui-ios.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -309,6 +325,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = R5A7982259;
 				INFOPLIST_FILE = "Printess Editor/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -328,6 +345,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = R5A7982259;
 				INFOPLIST_FILE = "Printess Editor/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
